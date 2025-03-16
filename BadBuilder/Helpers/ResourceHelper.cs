@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Reflection;
 
 namespace BadBuilder.Helpers
 {
@@ -12,7 +7,7 @@ namespace BadBuilder.Helpers
         internal static void ExtractEmbeddedBinary(string resourceName)
         {
             var assembly = Assembly.GetExecutingAssembly();
-            string fullResourceName = $"BadBuilder.Tools.{resourceName}";
+            string fullResourceName = $"BadBuilder.Resources.{resourceName}";
 
             using (Stream resourceStream = assembly.GetManifestResourceStream(fullResourceName))
             {

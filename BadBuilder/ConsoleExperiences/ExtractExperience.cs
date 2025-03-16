@@ -1,0 +1,33 @@
+﻿using Spectre.Console;
+using BadBuilder.Helpers;
+
+namespace BadBuilder
+{
+    internal partial class Program
+    {
+        internal static async Task ExtractFiles(List<ArchiveItem> filesToExtract)
+        {
+            filesToExtract.Sort((a, b) => b.name.Length.CompareTo(a.name.Length));
+
+            await AnsiConsole.Progress()
+            .Columns(
+                new TaskDescriptionColumn(),
+                new ProgressBarColumn().FinishedStyle(GreenStyle).CompletedStyle(LightOrangeStyle),
+                new PercentageColumn().CompletedStyle(GreenStyle),
+                new RemainingTimeColumn().Style(GrayStyle)
+            )
+            .StartAsync(async ctx =>
+            {
+                AnsiConsole.MarkupLine("[#76B900]{0}[/] Extracting files.", Markup.Escape("[*]"));
+                await Task.WhenAll(filesToExtract.Select(async item =>
+                {
+                    var task = ctx.AddTask(item.name, new ProgressTaskSettings { AutoStart = false });
+                    await ArchiveHelper.ExtractFileAsync(item.name, item.path, task);
+                }));
+            });
+
+            string status = "[+]";
+            AnsiConsole.MarkupInterpolated($"[#76B900]{status}[/] [bold]{filesToExtract.Count()}[/] files extracted.");
+        }
+    }
+}

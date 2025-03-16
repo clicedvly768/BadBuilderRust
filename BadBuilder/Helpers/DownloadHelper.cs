@@ -1,15 +1,42 @@
-﻿using Spectre.Console;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Octokit;
+using Spectre.Console;
+
+using static BadBuilder.Constants;
 
 namespace BadBuilder.Helpers
 {
     internal static class DownloadHelper
     {
-        internal static async Task DownloadFile(HttpClient client, ProgressTask task, string url)
+        internal static async Task GetGitHubAssets(List<DownloadItem> items)
+        {
+            GitHubClient gitClient = new(new ProductHeaderValue("BadBuilder-Downloader"));
+            List<string> repos =
+            [
+                "grimdoomer/Xbox360BadUpdate",
+                "FreeMyXe/FreeMyXe"
+            ];
+
+            foreach (var repo in repos)
+            {
+                string[] splitRepo = repo.Split('/');
+                var latestRelease = await gitClient.Repository.Release.GetLatest(splitRepo[0], splitRepo[1]);
+
+                foreach (var asset in latestRelease.Assets)
+                {
+                    string friendlyName = asset.Name switch
+                    {
+                        var name when name.Contains("Free", StringComparison.OrdinalIgnoreCase) => "FreeMyXe",
+                        var name when name.Contains("Tools", StringComparison.OrdinalIgnoreCase) => "BadUpdate Tools",
+                        var name when name.Contains("BadUpdate", StringComparison.OrdinalIgnoreCase) => "BadUpdate",
+                        _ => asset.Name.Substring(0, asset.Name.Length - 4)
+                    };
+
+                    items.Add(new(friendlyName, asset.BrowserDownloadUrl));
+                }
+            }
+        }
+
+        internal static async Task DownloadFileAsync(HttpClient client, ProgressTask task, string url)
         {
             try
             {
@@ -22,10 +49,10 @@ namespace BadBuilder.Helpers
 
                     string filename = url.Substring(url.LastIndexOf('/') + 1);
 
-                    using (var contentStream = await response.Content.ReadAsStreamAsync())
-                    using (var fileStream = new FileStream(filename, FileMode.Create, FileAccess.Write, FileShare.None, 8192, true))
+                    using (Stream contentStream = await response.Content.ReadAsStreamAsync())
+                    using (FileStream fileStream = new($"{DOWNLOAD_DIR}/{filename}", System.IO.FileMode.Create, FileAccess.Write, FileShare.None, 8192, true))
                     {
-                        var buffer = new byte[8192];
+                        byte[] buffer = new byte[8192];
                         while (true)
                         {
                             var read = await contentStream.ReadAsync(buffer, 0, buffer.Length);

@@ -11,7 +11,7 @@ namespace BadBuilder
 {
     internal partial class Program
     {
-        static string PromptForDiskSelection(List<DiskInfo> disks)
+        static string PromptDiskSelection(List<DiskInfo> disks)
         {
             var choices = new List<string>();
             foreach (var disk in disks)
@@ -38,14 +38,14 @@ namespace BadBuilder
             );
         }
 
-        static async Task FormatDisk(List<DiskInfo> disks, string selectedDisk)
+        static void FormatDisk(List<DiskInfo> disks, string selectedDisk)
         {
             int diskIndex = disks.FindIndex(disk => $"{disk.DriveLetter} ({disk.SizeFormatted}) - {disk.Type}" == selectedDisk);
 
-            await AnsiConsole.Status().StartAsync($"[#76B900]Formatting disk[/] {selectedDisk}", async ctx =>
+            AnsiConsole.Status().SpinnerStyle(LightOrangeStyle).Start($"[#76B900]Formatting disk[/] {selectedDisk}", ctx =>
             {
                 if (diskIndex == -1) return;
-                await DiskHelper.FormatDisk(disks[diskIndex]);
+                DiskHelper.FormatDisk(disks[diskIndex]).Wait();
             });
         }
     }
