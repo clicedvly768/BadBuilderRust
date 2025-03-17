@@ -22,16 +22,16 @@ namespace BadBuilder.Formatter
             if (driveHandle.IsInvalid) return Error("Unable to open device. GetLastError: " + Marshal.GetLastWin32Error());
 
             if (!EnableExtendedDASDIO(driveHandle) || !LockDevice(driveHandle))
-                return Error("Failed to initialize device access.");
+                return Error($"Failed to initialize device access. GetLastError: {Marshal.GetLastWin32Error()}");
 
             DISK_GEOMETRY diskGeometry;
             if (!TryGetDiskGeometry(driveHandle, out diskGeometry))
-                return Error("Failed to get drive geometry.");
+                return Error($"Failed to get disk geometry. GetLastError: {Marshal.GetLastWin32Error()}");
 
-            PARTITION_INFORMATION partitionInfo = new();
+            PARTITION_INFORMATION partitionInfo;
             bool isGPT = false;
             if (!TryGetPartitionInfo(driveHandle, ref diskGeometry, out partitionInfo, out isGPT))
-                return Error("Failed to get partition information.");
+                return Error($"Failed to get partition information. GetLastError: {Marshal.GetLastWin32Error()}");
 
             uint totalSectors = (uint)(partitionInfo.PartitionLength / diskGeometry.BytesPerSector);
             if (!IsValidFAT32Size(totalSectors))
@@ -175,18 +175,25 @@ namespace BadBuilder.Formatter
             return sector;
         }
 
-        private static unsafe string FormatVolumeData(SafeFileHandle driveHandle, DISK_GEOMETRY diskGeometry, FAT32BootSector bootSector, FAT32FsInfoSector fsInfo, uint[] firstFATSector, bool isGPT, PARTITION_INFORMATION partitionInfo)
+        private static unsafe string FormatVolumeData(
+            SafeFileHandle driveHandle,
+            DISK_GEOMETRY diskGeometry,
+            FAT32BootSector bootSector,
+            FAT32FsInfoSector fsInfo,
+            uint[] firstFATSector,
+            bool isGPT,
+            PARTITION_INFORMATION partitionInfo)
         {
             uint bytesPerSector = diskGeometry.BytesPerSector;
-            uint totalSectors = (uint)(partitionInfo.PartitionLength / diskGeometry.BytesPerSector);
-            uint userAreaSize = totalSectors - bootSector.ReservedSectorCount - (bootSector.NumberOfFATs * bootSector.SectorsPerFAT);
+            uint totalSectors = (uint)(partitionInfo.PartitionLength / bytesPerSector);
             uint systemAreaSize = bootSector.ReservedSectorCount + (bootSector.NumberOfFATs * bootSector.SectorsPerFAT) + bootSector.SectorsPerCluster;
+            uint userAreaSize = totalSectors - systemAreaSize;
             uint clusterCount = userAreaSize / bootSector.SectorsPerCluster;
 
             if (clusterCount < 65536 || clusterCount > 0x0FFFFFFF)
-                return Error("The drives cluster count is out of range (65536 < clusterCount < 0x0FFFFFFF)");
+                return Error("The drive's cluster count is out of range (65536 < clusterCount < 0x0FFFFFFF)");
 
-            fsInfo.FreeClusterCount = (userAreaSize / bootSector.SectorsPerCluster) - 1;
+            fsInfo.FreeClusterCount = clusterCount - 1;
 
             ZeroOutSectors(driveHandle, 0, systemAreaSize, bytesPerSector);
 
@@ -199,16 +206,13 @@ namespace BadBuilder.Formatter
 
             for (int i = 0; i < bootSector.NumberOfFATs; i++)
             {
-                uint sectorStart = bootSector.ReservedSectorCount + ((uint)i * bootSector.SectorsPerFAT);
+                uint sectorStart = (uint)(bootSector.ReservedSectorCount + (i * bootSector.SectorsPerFAT));
                 WriteSector(driveHandle, sectorStart, 1, bytesPerSector, UintArrayToBytes(firstFATSector));
             }
 
             if (!isGPT)
             {
-                SET_PARTITION_INFORMATION setPartInfo = new SET_PARTITION_INFORMATION
-                {
-                    PartitionType = 0x0C
-                };
+                SET_PARTITION_INFORMATION setPartInfo = new() { PartitionType = 0x0C };
 
                 if (!DeviceIoControl(driveHandle, IOCTL_DISK_SET_PARTITION_INFO, &setPartInfo, (uint)sizeof(SET_PARTITION_INFORMATION), null, 0, null, null))
                     return Error($"Failed to set the drive partition information. GetLastError: {Marshal.GetLastWin32Error()}");

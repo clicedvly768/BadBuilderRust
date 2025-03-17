@@ -13,8 +13,7 @@ namespace BadBuilder
             .Columns(
                 new TaskDescriptionColumn(),
                 new ProgressBarColumn().FinishedStyle(GreenStyle).CompletedStyle(LightOrangeStyle),
-                new PercentageColumn().CompletedStyle(GreenStyle),
-                new RemainingTimeColumn().Style(GrayStyle)
+                new PercentageColumn().CompletedStyle(GreenStyle)
             )
             .StartAsync(async ctx =>
             {

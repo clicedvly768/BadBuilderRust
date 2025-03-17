@@ -48,8 +48,6 @@ namespace BadBuilder
                 }
             }
 
-            ClearConsole();
-
             List<ArchiveItem> downloadedFiles = DownloadRequiredFiles().Result;
             ExtractFiles(downloadedFiles).Wait();
 

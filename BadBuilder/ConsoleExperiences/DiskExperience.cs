@@ -39,10 +39,11 @@ namespace BadBuilder
             bool ret = true;
             string output = string.Empty;
 
-            AnsiConsole.Status().SpinnerStyle(LightOrangeStyle).Start($"[#76B900]Formatting disk[/] {selectedDisk}", ctx =>
+            AnsiConsole.Status().SpinnerStyle(LightOrangeStyle).Start($"[#76B900]Formatting disk[/] {selectedDisk}", async ctx =>
             {
                 if (diskIndex == -1) return;
 
+                ClearConsole();
                 output = DiskHelper.FormatDisk(disks[diskIndex]);
                 if (output != string.Empty) ret = false;
             });

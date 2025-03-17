@@ -71,13 +71,11 @@ namespace BadBuilder.Formatter
 
         internal static unsafe void WriteSector(SafeHandle hDevice, uint sector, uint numberOfSectors, uint bytesPerSector, byte[] data)
         {
-            uint bytesWritten;
-
             SeekTo(hDevice, sector, bytesPerSector);
 
             fixed (byte* pData = &data[0])
             {
-                if (!WriteFile(new HANDLE(hDevice.DangerousGetHandle()), pData, numberOfSectors * bytesPerSector, &bytesWritten, null))
+                if (!WriteFile(new HANDLE(hDevice.DangerousGetHandle()), pData, numberOfSectors * bytesPerSector, null, null))
                     ExitWithError($"Unable to write sectors to FAT32 device, exiting. GetLastError: {Marshal.GetLastWin32Error()}");
             }
         }
@@ -86,7 +84,6 @@ namespace BadBuilder.Formatter
         {
             const uint burstSize = 128;
             uint writeSize;
-            uint bytesWritten;
 
             byte* pZeroSector = (byte*)VirtualAlloc(null, bytesPerSector * burstSize, VIRTUAL_ALLOCATION_TYPE.MEM_COMMIT | VIRTUAL_ALLOCATION_TYPE.MEM_RESERVE, PAGE_PROTECTION_FLAGS.PAGE_READWRITE);
 
@@ -98,7 +95,7 @@ namespace BadBuilder.Formatter
                 {
                     writeSize = (numberOfSectors > burstSize) ? burstSize : numberOfSectors;
 
-                    if (!WriteFile(new HANDLE(hDevice.DangerousGetHandle()), pZeroSector, writeSize * bytesPerSector, &bytesWritten, null))
+                    if (!WriteFile(new HANDLE(hDevice.DangerousGetHandle()), pZeroSector, writeSize * bytesPerSector, null, null))
                         ExitWithError($"Unable to write sectors to FAT32 device, exiting. GetLastError: {Marshal.GetLastWin32Error()}");
 
                     numberOfSectors -= writeSize;
