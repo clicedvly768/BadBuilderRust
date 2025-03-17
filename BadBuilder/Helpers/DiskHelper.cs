@@ -1,6 +1,5 @@
 ﻿using BadBuilder.Models;
-using System.Diagnostics;
-using System.Management;
+using BadBuilder.Formatter;
 
 namespace BadBuilder.Helpers
 {
@@ -28,25 +27,6 @@ namespace BadBuilder.Helpers
             return disks;
         }
 
-        internal static async Task FormatDisk(DiskInfo disk)
-        {
-            ResourceHelper.ExtractEmbeddedBinary("fat32format.exe");
-
-            Process process = new Process
-            {
-                StartInfo = new ProcessStartInfo
-                {
-                    FileName = @"fat32format.exe",
-                    Arguments = $"-c64 {disk.DriveLetter}",
-                    RedirectStandardOutput = false,
-                    RedirectStandardError = false,
-                    UseShellExecute = false,
-                    CreateNoWindow = true
-                }
-            };
-
-            process.Start();
-            await process.WaitForExitAsync();
-        }
+        internal static string FormatDisk(DiskInfo disk) => DiskFormatter.FormatVolume(disk.DriveLetter.ToCharArray()[0]);
     }
 }

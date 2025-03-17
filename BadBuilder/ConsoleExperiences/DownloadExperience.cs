@@ -1,7 +1,7 @@
 ﻿using Spectre.Console;
 using BadBuilder.Helpers;
 
-using static BadBuilder.Constants;
+using static BadBuilder.Utilities.Constants;
 
 namespace BadBuilder
 {

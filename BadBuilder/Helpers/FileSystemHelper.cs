@@ -1,6 +1,4 @@
-﻿using BadBuilder.Models;
-
-namespace BadBuilder.Helpers
+﻿namespace BadBuilder.Helpers
 {
     internal static class FileSystemHelper
     {

@@ -1,11 +1,6 @@
 ﻿using Spectre.Console;
 using BadBuilder.Models;
 using BadBuilder.Helpers;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BadBuilder
 {
@@ -38,15 +33,28 @@ namespace BadBuilder
             );
         }
 
-        static void FormatDisk(List<DiskInfo> disks, string selectedDisk)
+        static bool FormatDisk(List<DiskInfo> disks, string selectedDisk)
         {
             int diskIndex = disks.FindIndex(disk => $"{disk.DriveLetter} ({disk.SizeFormatted}) - {disk.Type}" == selectedDisk);
+            bool ret = true;
+            string output = string.Empty;
 
             AnsiConsole.Status().SpinnerStyle(LightOrangeStyle).Start($"[#76B900]Formatting disk[/] {selectedDisk}", ctx =>
             {
                 if (diskIndex == -1) return;
-                DiskHelper.FormatDisk(disks[diskIndex]).Wait();
+
+                output = DiskHelper.FormatDisk(disks[diskIndex]);
+                if (output != string.Empty) ret = false;
             });
+
+            if (!ret)
+            {
+                AnsiConsole.Clear();
+                ShowWelcomeMessage();
+                Console.Write("\n" + output + "\n");
+            }
+
+            return ret;
         }
     }
 }

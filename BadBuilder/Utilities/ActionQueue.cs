@@ -1,4 +1,4 @@
-﻿namespace BadBuilder.Models
+﻿namespace BadBuilder.Utilities
 {
     internal class ActionQueue
     {

@@ -1,4 +1,4 @@
-﻿namespace BadBuilder
+﻿namespace BadBuilder.Utilities
 {
     internal static class Constants
     {

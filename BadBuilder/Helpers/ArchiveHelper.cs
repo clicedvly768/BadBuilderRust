@@ -1,8 +1,9 @@
-﻿using SharpCompress.Archives;
-using SharpCompress.Common;
-using Spectre.Console;
+﻿using Spectre.Console;
 using System.Diagnostics;
-using static BadBuilder.Constants;
+using SharpCompress.Common;
+using SharpCompress.Archives;
+
+using static BadBuilder.Utilities.Constants;
 
 namespace BadBuilder.Helpers
 {
@@ -27,7 +28,7 @@ namespace BadBuilder.Helpers
             }
             catch (Exception ex)
             {
-                // Sorry, but these exceptions are invalid. SharpCompress is mad because there's nested ZIPs in xexmenu.
+                // Sorry, but these exceptions are invalid. The files extract just fine.
                 Debug.WriteLine(ex);
             }
         }

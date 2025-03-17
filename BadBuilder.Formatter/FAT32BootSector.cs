@@ -5,15 +5,10 @@ namespace BadBuilder.Formatter
     // Reference: https://cscie92.dce.harvard.edu/spring2024/K70F120M/bootSector.h
 
     [StructLayout(LayoutKind.Explicit, Pack = 1, Size = 512)]
-    internal struct FAT32BootSector
+    internal unsafe struct FAT32BootSector
     {
-        [FieldOffset(0)]
-        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 3)]
-        internal byte[] JumpCode;
-
-        [FieldOffset(3)]
-        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 8)]
-        internal char[] OEMName;
+        [FieldOffset(0)] public fixed byte JumpCode[3];
+        [FieldOffset(3)] public fixed char OEMName[8];
 
         [FieldOffset(11)] internal ushort BytesPerSector;
         [FieldOffset(13)] internal byte SectorsPerCluster;
@@ -36,26 +31,15 @@ namespace BadBuilder.Formatter
         [FieldOffset(48)] internal ushort FSInfoSector;
         [FieldOffset(50)] internal ushort BackupBootSector;
 
-        [FieldOffset(52)]
-        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 12)]
-        internal byte[] Reserved;
+        [FieldOffset(52)] public fixed byte Reserved[12];
 
-        [FieldOffset(64)] internal byte DriveNumber;
-        [FieldOffset(65)] internal byte Reserved1;
-        [FieldOffset(66)] internal byte BootSignature;
-        [FieldOffset(67)] internal uint VolumeID;
-
-        [FieldOffset(71)]
-        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 11)]
-        internal char[] VolumeLabel;
-
-        [FieldOffset(82)]
-        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 8)]
-        internal char[] FileSystemType;
-
-        [FieldOffset(90)]
-        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 420)]
-        internal byte[] Reserved2;
+        [FieldOffset(64)] public byte DriveNumber;
+        [FieldOffset(65)] public byte Reserved1;
+        [FieldOffset(66)] public byte BootSignature;
+        [FieldOffset(67)] public uint VolumeID;
+        [FieldOffset(71)] public fixed char VolumeLabel[11];
+        [FieldOffset(82)] public fixed char FileSystemType[8];
+        [FieldOffset(90)] public fixed byte Reserved2[420];
 
         [FieldOffset(510)] internal ushort Signature;
     }

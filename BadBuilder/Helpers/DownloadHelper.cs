@@ -1,7 +1,7 @@
 ﻿using Octokit;
 using Spectre.Console;
 
-using static BadBuilder.Constants;
+using static BadBuilder.Utilities.Constants;
 
 namespace BadBuilder.Helpers
 {

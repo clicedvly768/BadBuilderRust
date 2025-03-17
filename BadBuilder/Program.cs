@@ -6,7 +6,8 @@ using Spectre.Console;
 using BadBuilder.Models;
 using BadBuilder.Helpers;
 
-using static BadBuilder.Constants;
+using static BadBuilder.Utilities.Constants;
+using BadBuilder.Utilities;
 
 namespace BadBuilder
 {
@@ -26,7 +27,6 @@ namespace BadBuilder
 
         static void Main(string[] args)
         {
-            BadBuilder.Formatter.DiskFormatter.FormatVolume('E');
             ShowWelcomeMessage();
 
             while (true)
@@ -43,7 +43,7 @@ namespace BadBuilder
                 bool confirmation = PromptFormatConfirmation(selectedDisk);
                 if (confirmation)
                 {
-                    FormatDisk(disks, selectedDisk);
+                    if (!FormatDisk(disks, selectedDisk)) continue; 
                     break;
                 }
             }
