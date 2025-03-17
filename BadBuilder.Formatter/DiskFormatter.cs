@@ -175,10 +175,10 @@ namespace BadBuilder.Formatter
             return sector;
         }
 
-        private static unsafe string FormatVolumeData(SafeFileHandle driveHandle, DISK_GEOMETRY geometry, FAT32BootSector bootSector, FAT32FsInfoSector fsInfo, uint[] firstFATSector, bool isGPT, PARTITION_INFORMATION partitionInfo)
+        private static unsafe string FormatVolumeData(SafeFileHandle driveHandle, DISK_GEOMETRY diskGeometry, FAT32BootSector bootSector, FAT32FsInfoSector fsInfo, uint[] firstFATSector, bool isGPT, PARTITION_INFORMATION partitionInfo)
         {
-            uint bytesPerSector = geometry.BytesPerSector;
-            uint totalSectors = (uint)(partitionInfo.PartitionLength / geometry.BytesPerSector);
+            uint bytesPerSector = diskGeometry.BytesPerSector;
+            uint totalSectors = (uint)(partitionInfo.PartitionLength / diskGeometry.BytesPerSector);
             uint userAreaSize = totalSectors - bootSector.ReservedSectorCount - (bootSector.NumberOfFATs * bootSector.SectorsPerFAT);
             uint systemAreaSize = bootSector.ReservedSectorCount + (bootSector.NumberOfFATs * bootSector.SectorsPerFAT) + bootSector.SectorsPerCluster;
             uint clusterCount = userAreaSize / bootSector.SectorsPerCluster;
