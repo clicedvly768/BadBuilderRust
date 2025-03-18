@@ -122,6 +122,8 @@ namespace BadBuilder
             if (!PromptAddHomebrew())
             {
                 AnsiConsole.MarkupLine("\n[#76B900]{0}[/] Your USB drive is ready to go.", Markup.Escape("[+]"));
+                Console.Write("\nPress any key to exit...");
+                Console.ReadKey();
                 Environment.Exit(0);
             }
 
@@ -141,9 +143,12 @@ namespace BadBuilder
                 }).Wait();
 
             string status = "[+]";
-            AnsiConsole.MarkupInterpolated($"[#76B900]{status}[/] [bold]{homebrewApps.Count()}[/] apps copied.\n");
+            AnsiConsole.MarkupInterpolated($"\n[#76B900]{status}[/] [bold]{homebrewApps.Count()}[/] apps copied.\n");
 
             AnsiConsole.MarkupLine("\n[#76B900]{0}[/] Your USB drive is ready to go.", Markup.Escape("[+]"));
+
+            Console.Write("\nPress any key to exit...");
+            Console.ReadKey();
         }
 
         static void EnqueueMirrorDirectory(string sourcePath, string destinationPath, int priority)
@@ -172,7 +177,7 @@ namespace BadBuilder
             [#CCE388]██████╔╝██║  ██║██████╔╝██████╔╝╚██████╔╝██║███████╗██████╔╝███████╗██║  ██║[/]
             [#CCE388]╚═════╝ ╚═╝  ╚═╝╚═════╝ ╚═════╝  ╚═════╝ ╚═╝╚══════╝╚═════╝ ╚══════╝╚═╝  ╚═╝[/]
 
-            [#76B900]────────────────────────────────────────────────────────────────────────────[/]
+            [#76B900]──────────────────────────────────────────────────────────────────────v0.10a[/]
             ───────────────────────Xbox 360 [#FF7200]BadUpdate[/] USB Builder───────────────────────
                                         [#848589]Created by Pdawg[/]
             [#76B900]────────────────────────────────────────────────────────────────────────────[/]
