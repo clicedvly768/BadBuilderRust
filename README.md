@@ -13,7 +13,7 @@ BadBuilder is a tool for creating a BadUpdate USB drive for the Xbox 360. It aut
 - Detects and downloads the latest required files automatically.
 - Recognizes previously downloaded files and reuses them by default.
 - Allows specifying custom paths for required files if they are already on your system.
-> [!WARNING]  
+> [!IMPORTANT]  
 > BadBuilder does not dynamically locate files inside ZIP archives. If your provided archive has a different folder structure than expected, the process will fail abruptly. Ensure your archive matches the expected format if specifying an existing copy.
 
 ### File Extraction & Copying
@@ -28,9 +28,11 @@ BadBuilder is a tool for creating a BadUpdate USB drive for the Xbox 360. It aut
 ## How to Use
 1. **Launch the executable**. It will open inside of a Terminal window.
 2. **Formatting (Windows Only):** BadBuilder will format your USB drive as FAT32, even if it’s larger than 32GB.
-3. **Download Files:** BadBuilder will fetch the required exploit files or let you specify an existing location.
-4. **Extract Files:** BadBuilder will automatically extract everything needed.
-5. **Copy files:** BadBuilder will copy all of the extracted files to the correct locations.
+> [!CAUTION]
+> Formatting a disk means that all data will be lost. Make sure you have selected the right drive before confirming the format. I am not responsible for any data loss.
+4. **Download Files:** BadBuilder will fetch the required exploit files or let you specify an existing location.
+5. **Extract Files:** BadBuilder will automatically extract everything needed.
+6. **Copy files:** BadBuilder will copy all of the extracted files to the correct locations.
 5. **Add Homebrew (Optional):**
     - Specify the root folder of your homebrew application (e.g., `D:\Aurora 0.7b.2 - Release Package`).
     - BadBuilder will locate the `.xex` file inside.
@@ -60,7 +62,7 @@ Aurora 0.7b.2 - Release Package/
 ```
 BadBuilder will detect `Aurora.xex` as the entry point and patch it accordingly.
 
-> [!NOTE]  
+> [!IMPORTANT]  
 > Homebrew apps which do not contain the entry point in the root folder are not currently supported.
 
 ### Using unsupported homebrew
