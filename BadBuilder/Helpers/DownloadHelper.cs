@@ -40,6 +40,7 @@ namespace BadBuilder.Helpers
         {
             try
             {
+                byte[] downloadBuffer = new byte[8192];
                 using (HttpResponseMessage response = await client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead))
                 {
                     response.EnsureSuccessStatusCode();
@@ -52,22 +53,22 @@ namespace BadBuilder.Helpers
                     using (Stream contentStream = await response.Content.ReadAsStreamAsync())
                     using (FileStream fileStream = new($"{DOWNLOAD_DIR}/{filename}", System.IO.FileMode.Create, FileAccess.Write, FileShare.None, 8192, true))
                     {
-                        byte[] buffer = new byte[8192];
+                        Array.Clear(downloadBuffer);
                         while (true)
                         {
-                            var read = await contentStream.ReadAsync(buffer, 0, buffer.Length);
+                            var read = await contentStream.ReadAsync(downloadBuffer, 0, downloadBuffer.Length);
                             if (read == 0)
                                 break;
 
                             task.Increment(read);
-                            await fileStream.WriteAsync(buffer, 0, read);
+                            await fileStream.WriteAsync(downloadBuffer, 0, read);
                         }
                     }
                 }
             }
             catch (Exception ex)
             {
-                AnsiConsole.MarkupLine($"[red]Error downloading:[/] {ex}");
+                AnsiConsole.MarkupLine($"[red]Error downloading file from [bold]{url}[/]: {ex}[/]");
             }
         }
     }

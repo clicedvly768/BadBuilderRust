@@ -12,7 +12,7 @@ namespace BadBuilder
             List<DownloadItem> items = new()
             {
                 ("XEXMenu", "https://consolemods.org/wiki/images/3/35/XeXmenu_12.7z"),
-                ("Rock Band Blitz", "https://download.digiex.net/Consoles/Xbox360/Arcade-games/RBBlitz.zip"),
+                ("Rock Band Blitz", "https://github.com/Pdawg-bytes/BadBuilder/releases/download/v0.10a/GameData.zip"),
                 ("Simple 360 NAND Flasher", "https://www.consolemods.org/wiki/images/f/ff/Simple_360_NAND_Flasher.7z"),
             };
             await DownloadHelper.GetGitHubAssets(items);
@@ -100,7 +100,6 @@ namespace BadBuilder
                         })
                 ).Trim().Trim('"');
 
-                Console.WriteLine(existingPath);
                 try
                 {
                     File.Copy(existingPath, destinationPath, overwrite: true);
