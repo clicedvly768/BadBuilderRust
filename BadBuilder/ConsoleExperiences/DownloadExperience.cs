@@ -47,11 +47,11 @@ namespace BadBuilder
 
             itemsToDownload.Sort((a, b) => b.name.Length.CompareTo(a.name.Length));
 
+            if (!Directory.Exists($"{DOWNLOAD_DIR}"))
+                Directory.CreateDirectory($"{DOWNLOAD_DIR}");
+
             if (itemsToDownload.Any())
             {
-                if (!Directory.Exists($"{DOWNLOAD_DIR}")) 
-                    Directory.CreateDirectory($"{DOWNLOAD_DIR}");
-
                 HttpClient downloadClient = new();
 
                 await AnsiConsole.Progress()
@@ -90,7 +90,7 @@ namespace BadBuilder
                 if (File.Exists(destinationPath)) continue;
 
                 string existingPath = AnsiConsole.Prompt(
-                    new TextPrompt<string>($"Enter the path for the [bold]{selectedItem}[/] archive:")
+                    new TextPrompt<string>($"Enter the path to the [bold]{selectedItem}[/] archive:")
                         .PromptStyle(LightOrangeStyle)
                         .Validate(path =>
                         {
@@ -100,10 +100,18 @@ namespace BadBuilder
                         })
                 ).Trim().Trim('"');
 
-                File.Copy(existingPath, destinationPath, overwrite: true);
-                AnsiConsole.MarkupLine($"[italic #76B900]Successfully copied [bold]{selectedItem}[/] to the working directory.[/]\n");
+                Console.WriteLine(existingPath);
+                try
+                {
+                    File.Copy(existingPath, destinationPath, overwrite: true);
+                    AnsiConsole.MarkupLine($"[italic #76B900]Successfully copied [bold]{selectedItem}[/] to the working directory.[/]\n");
+                }
+                catch (Exception ex)
+                {
+                    AnsiConsole.MarkupLine($"[italic red]Failed to copy [bold]{selectedItem}[/] to the working directory. Exception: {ex.Message}[/]\n");
+                }
+                
             }
-
 
             return items.Select(item => new ArchiveItem(item.name, Path.Combine(DOWNLOAD_DIR, item.url.Split('/').Last()))).ToList();
         }
