@@ -5,6 +5,7 @@ DeviceIoControl
 CloseHandle
 VirtualAlloc
 VirtualFree
+SetVolumeLabelW
 GUID
 DISK_GEOMETRY
 PARTITION_INFORMATION

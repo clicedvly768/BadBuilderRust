@@ -39,23 +39,27 @@ namespace BadBuilder.Formatter
             return (uint)(low | (hi << 16));
         }
 
-        internal static uint CalculateFATSize(uint totalSectors, uint reservedSectors, uint sectorsPerCluster, uint numberOfFATs, uint bytesPerSector)
+        internal static uint CalculateFATSize(uint diskSize, uint reservedSectors, uint sectorsPerCluster, uint numberOfFATs, uint bytesPerSector)
         {
             const ulong fatElementSize = 4;
+            const ulong reservedClusters = 2;
 
-            ulong numerator = fatElementSize * (totalSectors - reservedSectors);
-            ulong denominator = (sectorsPerCluster * bytesPerSector) + (fatElementSize * numberOfFATs);
+            ulong numerator = diskSize - reservedSectors + reservedClusters * sectorsPerCluster;
+            ulong denominator = (sectorsPerCluster * bytesPerSector / fatElementSize) + numberOfFATs;
 
-            return (uint)((numerator / denominator) + 1);
+            return (uint)(numerator / denominator + 1);
         }
 
-        internal static byte CalculateSectorsPerCluster(ulong diskSizeBytes, uint bytesPerSector) => (diskSizeBytes / (1024 * 1024)) switch
+        internal static long CalculateSectorsPerCluster(ulong diskSizeBytes, uint bytesPerSector) => diskSizeBytes switch
         {
-            var size when size > 512 => (byte)((4 * 1024) / bytesPerSector),
-            var size when size > 8192 => (byte)((8 * 1024) / bytesPerSector),
-            var size when size > 16384 => (byte)((16 * 1024) / bytesPerSector),
-            var size when size > 32768 => (byte)((32 * 1024) / bytesPerSector),
-            _ => 1
+            < 64 * MB => ((512) / bytesPerSector),
+            < 128 * MB => ((1 * KB) / bytesPerSector),
+            < 256 * MB => ((2 * KB) / bytesPerSector),
+            < 8 * GB => ((4 * KB) / bytesPerSector),
+            < 16 * GB => ((8 * KB) / bytesPerSector),
+            < 32 * GB => ((16 * KB) / bytesPerSector),
+            < 2 * TB => ((32 * KB) / bytesPerSector),
+            _ => ((64 * KB) / bytesPerSector)
         };
 
 

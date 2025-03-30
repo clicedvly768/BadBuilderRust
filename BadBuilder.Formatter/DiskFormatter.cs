@@ -1,5 +1,6 @@
 ﻿#pragma warning disable CA1416
 using System.Text;
+using System.Diagnostics;
 using Windows.Win32.System.Ioctl;
 using Microsoft.Win32.SafeHandles;
 using System.Runtime.InteropServices;
@@ -8,17 +9,40 @@ using Windows.Win32.Storage.FileSystem;
 using static Windows.Win32.PInvoke;
 using static BadBuilder.Formatter.Constants;
 using static BadBuilder.Formatter.Utilities;
+using Windows.Win32.Foundation;
 
 namespace BadBuilder.Formatter
 {
     public static class DiskFormatter
     {
-        public static unsafe string FormatVolume(char driveLetter)
+        public static unsafe string FormatVolume(char driveLetter, long diskSize)
         {
+            if (diskSize < 32 * GB)
+            {
+                Process process = new Process
+                {
+                    StartInfo = new ProcessStartInfo
+                    {
+                        FileName = "format.com",
+                        Arguments = $"\"{driveLetter}:\" /Q /X /Y /FS:FAT32 /V:BADUPDATE",
+                        RedirectStandardOutput = false,
+                        RedirectStandardError = false,
+                        UseShellExecute = false,
+                        CreateNoWindow = true
+                    }
+                };
+
+                process.Start();
+                process.WaitForExit();
+
+                if (process.ExitCode == 0) return "";
+                else return Error($"Native format failed with exit code: {process.ExitCode}");
+            }
+
             string devicePath = $"\\\\.\\{driveLetter}:";
             uint volumeID = GetVolumeID();
 
-            using SafeFileHandle driveHandle = OpenDeviceHandle(devicePath);
+            SafeFileHandle driveHandle = OpenDeviceHandle(devicePath);
             if (driveHandle.IsInvalid) return Error("Unable to open device. GetLastError: " + Marshal.GetLastWin32Error());
 
             if (!EnableExtendedDASDIO(driveHandle) || !LockDevice(driveHandle))
@@ -48,6 +72,10 @@ namespace BadBuilder.Formatter
             if (!UnlockDevice(driveHandle) || !DismountVolume(driveHandle))
                 return Error($"Failed to release the device. GetLastError: {Marshal.GetLastWin32Error()}");
 
+            driveHandle.Dispose();
+
+            if (!SetVolumeLabel($"{driveLetter}:", "BADUPDATE"))
+                return Error($"Unable to set volume label. GetLastError: {Marshal.GetLastWin32Error()}");
 
             return string.Empty;
         }
@@ -109,14 +137,18 @@ namespace BadBuilder.Formatter
 
         private static unsafe FAT32BootSector InitializeBootSector(DISK_GEOMETRY diskGeometry, PARTITION_INFORMATION partitionInfo, uint totalSectors, uint volumeID)
         {
-            byte sectorsPerCluster = CalculateSectorsPerCluster((ulong)partitionInfo.PartitionLength, diskGeometry.BytesPerSector);
+            uint sectorsPerCluster = (uint)CalculateSectorsPerCluster((ulong)partitionInfo.PartitionLength, diskGeometry.BytesPerSector);
             uint fatSize = CalculateFATSize(totalSectors, 32, sectorsPerCluster, 2, diskGeometry.BytesPerSector);
+
+            uint aligned = (uint)MB / diskGeometry.BytesPerSector;
+            uint sysAreaSize = ((34 * fatSize + aligned - 1) / aligned) * aligned;
+            uint reserved = sysAreaSize - 2 * fatSize;
 
             FAT32BootSector bootSector = new FAT32BootSector
             {
                 BytesPerSector = (ushort)diskGeometry.BytesPerSector,
-                SectorsPerCluster = sectorsPerCluster,
-                ReservedSectorCount = 32,
+                SectorsPerCluster = (byte)sectorsPerCluster,
+                ReservedSectorCount = (ushort)reserved,
                 NumberOfFATs = 2,
                 MediaDescriptor = 0xF8,
                 SectorsPerTrack = (ushort)diskGeometry.SectorsPerTrack,
@@ -186,8 +218,8 @@ namespace BadBuilder.Formatter
         {
             uint bytesPerSector = diskGeometry.BytesPerSector;
             uint totalSectors = (uint)(partitionInfo.PartitionLength / bytesPerSector);
-            uint systemAreaSize = bootSector.ReservedSectorCount + (bootSector.NumberOfFATs * bootSector.SectorsPerFAT) + bootSector.SectorsPerCluster;
-            uint userAreaSize = totalSectors - systemAreaSize;
+            uint userAreaSize = totalSectors - bootSector.ReservedSectorCount - (bootSector.NumberOfFATs * bootSector.SectorsPerFAT);
+            uint zeroOut = bootSector.ReservedSectorCount + (bootSector.NumberOfFATs * bootSector.SectorsPerFAT) + bootSector.SectorsPerCluster;
             uint clusterCount = userAreaSize / bootSector.SectorsPerCluster;
 
             if (clusterCount < 65536 || clusterCount > 0x0FFFFFFF)
@@ -195,7 +227,7 @@ namespace BadBuilder.Formatter
 
             fsInfo.FreeClusterCount = clusterCount - 1;
 
-            ZeroOutSectors(driveHandle, 0, systemAreaSize, bytesPerSector);
+            ZeroOutSectors(driveHandle, 0, zeroOut, bytesPerSector);
 
             for (int i = 0; i < 2; i++)
             {
@@ -208,14 +240,6 @@ namespace BadBuilder.Formatter
             {
                 uint sectorStart = (uint)(bootSector.ReservedSectorCount + (i * bootSector.SectorsPerFAT));
                 WriteSector(driveHandle, sectorStart, 1, bytesPerSector, UintArrayToBytes(firstFATSector));
-            }
-
-            if (!isGPT)
-            {
-                SET_PARTITION_INFORMATION setPartInfo = new() { PartitionType = 0x0C };
-
-                if (!DeviceIoControl(driveHandle, IOCTL_DISK_SET_PARTITION_INFO, &setPartInfo, (uint)sizeof(SET_PARTITION_INFORMATION), null, 0, null, null))
-                    return Error($"Failed to set the drive partition information. GetLastError: {Marshal.GetLastWin32Error()}");
             }
 
             return "";

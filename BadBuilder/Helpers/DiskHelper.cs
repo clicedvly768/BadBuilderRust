@@ -34,7 +34,7 @@ namespace BadBuilder.Helpers
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 return "\u001b[38;2;255;114;0m[-]\u001b[0m Formatting is currently only supported on Windows. Please format your drive manually and try again.";
 
-            return DiskFormatter.FormatVolume(disk.DriveLetter[0]);
+            return DiskFormatter.FormatVolume(disk.DriveLetter[0], disk.TotalSize);
         }
     }
 }

@@ -6,6 +6,12 @@
 
         internal const string ANSI_RESET = "\u001b[0m";
 
+        internal const long KB = 1024L;
+        internal const long MB = 1048576L;
+        internal const long GB = 1073741824L;
+        internal const long TB = 1099511627776L;
+
+        internal const int FMIFS_HARDDISK = 0xC;
 
         internal const uint GENERIC_READ = 0x80000000;
         internal const uint GENERIC_WRITE = 0x40000000;

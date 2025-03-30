@@ -5,9 +5,9 @@ global using HomebrewApp = (string name, string folder, string entryPoint);
 using Spectre.Console;
 using BadBuilder.Models;
 using BadBuilder.Helpers;
+using BadBuilder.Utilities;
 
 using static BadBuilder.Utilities.Constants;
-using BadBuilder.Utilities;
 
 namespace BadBuilder
 {
@@ -79,14 +79,10 @@ namespace BadBuilder
                         actionQueue.EnqueueAction(async () =>
                         {
                             using (StreamWriter writer = new(Path.Combine(TargetDriveLetter, "name.txt")))
-                            {
                                 writer.WriteLine("USB Storage Device");
-                            }
 
                             using (StreamWriter writer = new(Path.Combine(TargetDriveLetter, "info.txt")))
-                            {
                                 writer.WriteLine("This drive was created with BadBuilder by Pdawg.\nFind more info here: https://github.com/Pdawg-bytes/BadBuilder");
-                            }
 
                             Directory.CreateDirectory(Path.Combine(TargetDriveLetter, "Apps"));
                             await FileSystemHelper.MirrorDirectoryAsync(Path.Combine(folder, "Rock Band Blitz"), TargetDriveLetter);
