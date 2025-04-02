@@ -72,7 +72,7 @@ namespace BadBuilder
             {
                 switch (folder.Split("\\").Last())
                 {
-                    case "XEXMenu":
+                    case "XeXMenu":
                         EnqueueMirrorDirectory(
                             Path.Combine(folder, $"{ContentFolder}C0DE9999"),
                             Path.Combine(TargetDriveLetter, $"{ContentFolder}C0DE9999"),
