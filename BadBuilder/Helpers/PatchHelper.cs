@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using Spectre.Console;
+using System.Diagnostics;
 
 namespace BadBuilder.Helpers
 {
@@ -12,8 +13,8 @@ namespace BadBuilder.Helpers
                 {
                     FileName = xexToolPath,
                     Arguments = $"-m r -r a \"{xexPath}\"",
-                    RedirectStandardOutput = false,
-                    RedirectStandardError = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
                     UseShellExecute = false,
                     CreateNoWindow = true
                 }
@@ -21,6 +22,13 @@ namespace BadBuilder.Helpers
 
             process.Start();
             await process.WaitForExitAsync();
+
+            if (process.ExitCode != 0)
+            {
+                string status = "[-]";
+                AnsiConsole.MarkupLineInterpolated($"\n[#FF7200]{status}[/] The program {Path.GetFileNameWithoutExtension(xexPath)} was unable to be patched. XexTool output:");
+                Console.WriteLine(process.StandardError.ReadToEnd());
+            }
         }
     }
 }

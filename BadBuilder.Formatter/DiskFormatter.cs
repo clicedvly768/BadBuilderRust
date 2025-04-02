@@ -9,7 +9,6 @@ using Windows.Win32.Storage.FileSystem;
 using static Windows.Win32.PInvoke;
 using static BadBuilder.Formatter.Constants;
 using static BadBuilder.Formatter.Utilities;
-using Windows.Win32.Foundation;
 
 namespace BadBuilder.Formatter
 {
@@ -17,7 +16,7 @@ namespace BadBuilder.Formatter
     {
         public static unsafe string FormatVolume(char driveLetter, long diskSize)
         {
-            if (diskSize < 32 * GB)
+            if (diskSize < 31 * GB) // Just a safeguard to ensure that we never run into close calls with disk size.
             {
                 Process process = new Process
                 {

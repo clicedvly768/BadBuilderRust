@@ -25,6 +25,8 @@ namespace BadBuilder
 
         static ActionQueue actionQueue = new();
 
+        static DiskInfo targetDisk = new("Z:\\", "Fixed", 0, "", 0, int.MaxValue); // Default values just incase.
+
         static void Main(string[] args)
         {
             ShowWelcomeMessage();
@@ -40,10 +42,13 @@ namespace BadBuilder
                 string selectedDisk = PromptDiskSelection(disks);
                 TargetDriveLetter = selectedDisk.Substring(0, 3);
 
+                int diskIndex = disks.FindIndex(disk => $"{disk.DriveLetter} ({disk.SizeFormatted}) - {disk.Type}" == selectedDisk);
+                targetDisk = disks[diskIndex];
+
                 bool confirmation = PromptFormatConfirmation(selectedDisk);
                 if (confirmation)
                 {
-                    if (!FormatDisk(disks, selectedDisk)) continue; 
+                    if (!FormatDisk(targetDisk)) continue; 
                     break;
                 }
             }
@@ -51,13 +56,21 @@ namespace BadBuilder
             List<ArchiveItem> downloadedFiles = DownloadRequiredFiles().Result;
             ExtractFiles(downloadedFiles).Wait();
 
+            ClearConsole();
+            string selectedDefaultApp = AnsiConsole.Prompt(
+                new SelectionPrompt<string>()
+                .Title("Which program should be launched by BadUpdate?")
+                .HighlightStyle(GreenStyle)
+                .AddChoices(
+                    "FreeMyXe",
+                    "XeUnshackle"
+                )
+            );
 
-            AnsiConsole.MarkupLine("\n\n[#76B900]{0}[/] Copying requried files and folders.", Markup.Escape("[*]"));
+            AnsiConsole.MarkupLine("[#76B900]{0}[/] Copying requried files and folders.", Markup.Escape("[*]"));
             foreach (var folder in Directory.GetDirectories($@"{EXTRACTED_DIR}"))
             {
-                var folderName = folder.Split("\\").Last();
-
-                switch (folderName)
+                switch (folder.Split("\\").Last())
                 {
                     case "XEXMenu":
                         EnqueueMirrorDirectory(
@@ -68,9 +81,21 @@ namespace BadBuilder
                         break;
 
                     case "FreeMyXe":
+                        if (selectedDefaultApp != "FreeMyXe") break;
                         EnqueueFileCopy(
                             Path.Combine(folder, "FreeMyXe.xex"),
                             Path.Combine(TargetDriveLetter, "BadUpdatePayload", "default.xex"),
+                            9
+                        );
+                        break;
+
+                    case "XeUnshackle":
+                        if (selectedDefaultApp != "XeUnshackle") break;
+                        string subFolderPath = Directory.GetDirectories(folder).FirstOrDefault();
+                        File.Delete(Path.Combine(subFolderPath, "README - IMPORTANT.txt"));
+                        EnqueueMirrorDirectory(
+                            subFolderPath,
+                            TargetDriveLetter,
                             9
                         );
                         break;
@@ -82,7 +107,7 @@ namespace BadBuilder
                                 writer.WriteLine("USB Storage Device");
 
                             using (StreamWriter writer = new(Path.Combine(TargetDriveLetter, "info.txt")))
-                                writer.WriteLine("This drive was created with BadBuilder by Pdawg.\nFind more info here: https://github.com/Pdawg-bytes/BadBuilder");
+                                writer.WriteLine($"This drive was created with BadBuilder by Pdawg.\nFind more info here: https://github.com/Pdawg-bytes/BadBuilder\nConfiguration: \n-  BadUpdate target binary: {selectedDefaultApp}");
 
                             Directory.CreateDirectory(Path.Combine(TargetDriveLetter, "Apps"));
                             await FileSystemHelper.MirrorDirectoryAsync(Path.Combine(folder, "Rock Band Blitz"), TargetDriveLetter);
@@ -109,14 +134,18 @@ namespace BadBuilder
                         }, 6);
                         break;
 
-                    default: throw new Exception($"Unexpected directory in working folder: {folder}");
+                    default: throw new Exception($"[-] Unexpected directory in working folder: {folder}");
                 }
             }
             actionQueue.ExecuteActionsAsync().Wait();
 
+            File.AppendAllText(Path.Combine(TargetDriveLetter, "info.txt"), $"-  Disk formatted using {(targetDisk.TotalSize < 31 * GB ? "Windows \"format.com\"" : "BadBuilder Large FAT32 formatter")}\n");
+            File.AppendAllText(Path.Combine(TargetDriveLetter, "info.txt"), $"-  Disk total size: {targetDisk.TotalSize} bytes\n");
+
             ClearConsole();
             if (!PromptAddHomebrew())
             {
+                WriteHomebrewLog(1);
                 AnsiConsole.MarkupLine("\n[#76B900]{0}[/] Your USB drive is ready to go.", Markup.Escape("[+]"));
                 Console.Write("\nPress any key to exit...");
                 Console.ReadKey();
@@ -134,12 +163,14 @@ namespace BadBuilder
                     await Task.WhenAll(homebrewApps.Select(async item =>
                     {
                         await FileSystemHelper.MirrorDirectoryAsync(item.folder, Path.Combine(TargetDriveLetter, "Apps", item.name));
-                        await PatchHelper.PatchXexAsync(Path.Combine(TargetDriveLetter, "Apps", item.name, Path.GetFileName(item.entryPoint)), XexToolPath);
+                        await PatchHelper.PatchXexAsync(item.entryPoint, XexToolPath);
                     }));
                 }).Wait();
 
+            WriteHomebrewLog(homebrewApps.Count + 1);
+
             string status = "[+]";
-            AnsiConsole.MarkupInterpolated($"\n[#76B900]{status}[/] [bold]{homebrewApps.Count()}[/] apps copied.\n");
+            AnsiConsole.MarkupLineInterpolated($"\n[#76B900]{status}[/] [bold]{homebrewApps.Count}[/] apps copied.");
 
             AnsiConsole.MarkupLine("\n[#76B900]{0}[/] Your USB drive is ready to go.", Markup.Escape("[+]"));
 
@@ -163,6 +194,13 @@ namespace BadBuilder
             }, priority);
         }
 
+        static void WriteHomebrewLog(int count)
+        {
+            string logPath = Path.Combine(TargetDriveLetter, "info.txt");
+            string logEntry = $"-  {count} homebrew app(s) added (including Simple 360 NAND Flasher)\n";
+            File.AppendAllText(logPath, logEntry);
+        }
+
 
         static void ShowWelcomeMessage() => AnsiConsole.Markup(
             """
@@ -173,12 +211,12 @@ namespace BadBuilder
             [#CCE388]██████╔╝██║  ██║██████╔╝██████╔╝╚██████╔╝██║███████╗██████╔╝███████╗██║  ██║[/]
             [#CCE388]╚═════╝ ╚═╝  ╚═╝╚═════╝ ╚═════╝  ╚═════╝ ╚═╝╚══════╝╚═════╝ ╚══════╝╚═╝  ╚═╝[/]
 
-            [#76B900]──────────────────────────────────────────────────────────────────────v0.21a[/]
+            [#76B900]───────────────────────────────────────────────────────────────────────v0.30[/]
             ───────────────────────Xbox 360 [#FF7200]BadUpdate[/] USB Builder───────────────────────
                                         [#848589]Created by Pdawg[/]
             [#76B900]────────────────────────────────────────────────────────────────────────────[/]
 
-            """);
+        """);
 
         static string PromptForAction() => AnsiConsole.Prompt(
             new SelectionPrompt<string>()

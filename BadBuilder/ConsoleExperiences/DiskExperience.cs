@@ -33,18 +33,15 @@ namespace BadBuilder
             );
         }
 
-        static bool FormatDisk(List<DiskInfo> disks, string selectedDisk)
+        static bool FormatDisk(DiskInfo disk)
         {
-            int diskIndex = disks.FindIndex(disk => $"{disk.DriveLetter} ({disk.SizeFormatted}) - {disk.Type}" == selectedDisk);
             bool ret = true;
             string output = string.Empty;
 
-            AnsiConsole.Status().SpinnerStyle(LightOrangeStyle).Start($"[#76B900]Formatting disk[/] {selectedDisk}", async ctx =>
+            AnsiConsole.Status().SpinnerStyle(LightOrangeStyle).Start($"[#76B900]Formatting disk[/] {disk.DriveLetter} ({disk.SizeFormatted}) - {disk.Type}", async ctx =>
             {
-                if (diskIndex == -1) return;
-
                 ClearConsole();
-                output = DiskHelper.FormatDisk(disks[diskIndex]);
+                output = DiskHelper.FormatDisk(disk);
                 if (output != string.Empty) ret = false;
             });
 

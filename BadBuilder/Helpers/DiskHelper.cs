@@ -7,7 +7,7 @@ namespace BadBuilder.Helpers
 {
     internal static class DiskHelper
     {
-        public static List<DiskInfo> GetDisks()
+        internal static List<DiskInfo> GetDisks()
         {
             var disks = new List<DiskInfo>();
 

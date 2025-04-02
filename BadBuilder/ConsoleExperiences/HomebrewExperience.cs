@@ -17,7 +17,7 @@ namespace BadBuilder
             );
         }
 
-        public static List<HomebrewApp> ManageHomebrewApps()
+        internal static List<HomebrewApp> ManageHomebrewApps()
         {
             var homebrewApps = new List<HomebrewApp>();
 
@@ -37,11 +37,7 @@ namespace BadBuilder
 
                         var newApp = AddHomebrewApp();
                         if (newApp != null)
-                        {
                             homebrewApps.Add(newApp.Value);
-                            AnsiConsole.Status()
-                                .Start("Adding...", ctx => ctx.Spinner(Spinner.Known.Dots2));
-                        }
                         break;
 
                     case "View Added Apps":
@@ -85,31 +81,30 @@ namespace BadBuilder
             string folderPath = AnsiConsole.Ask<string>("[#FFA500]Enter the folder path for the app:[/]"); 
             if (!Directory.Exists(folderPath)) 
             { 
-                AnsiConsole.MarkupLine("[#ffac4d]Invalid folder path. Please try again.[/]"); 
+                AnsiConsole.MarkupLine("[#ffac4d]Invalid folder path. Please try again.\n[/]"); 
                 return null; 
             } 
             
-            string[] xexFiles = Directory.GetFiles(folderPath, "*.xex"); 
-            if (xexFiles.Length == 0) 
-            { 
-                AnsiConsole.MarkupLine("[#ffac4d]No XEX files found in this folder.[/]"); 
-                return null; 
-            }
+            string[] xexFiles = Directory.GetFiles(folderPath, "*.xex");
 
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
+#pragma warning disable CS8714 // The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn't match 'notnull' constraint.
             string entryPoint = xexFiles.Length switch
             {
                 0 => AnsiConsole.Prompt(
-                    new TextPrompt<string>("[#ffac4d]No .xex files found.[/] Enter entry point:")
-                        .Validate(path => File.Exists(path) ? ValidationResult.Success() : ValidationResult.Error("File not found"))
-                ),
+                    new TextPrompt<string>("[grey]No .xex files found in this folder.[/] [#FFA500]Enter the path to the entry point:[/]")
+                        .Validate(path => File.Exists(path.Trim().Trim('"')) && Path.GetExtension(path.Trim().Trim('"')) == ".xex" ? ValidationResult.Success() : ValidationResult.Error("[#ffac4d]File not found or is not an XEX file.[/]\n"))
+                ).Trim().Trim('"'),
                 1 => xexFiles[0],
                 _ => AnsiConsole.Prompt(
-                    new SelectionPrompt<string>()
+                    new SelectionPrompt<string?>()
                         .Title("[#FFA500]Select entry point:[/]")
                         .HighlightStyle(PeachStyle)
                         .AddChoices(xexFiles.Select(Path.GetFileName))
                 )
             };
+#pragma warning restore CS8714 // The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn't match 'notnull' constraint.
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
 
             ClearConsole();
 

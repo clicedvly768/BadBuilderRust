@@ -24,9 +24,6 @@ namespace BadBuilder
                     await ArchiveHelper.ExtractFileAsync(item.name, item.path, task);
                 }));
             });
-
-            string status = "[+]";
-            AnsiConsole.MarkupInterpolated($"[#76B900]{status}[/] [bold]{filesToExtract.Count()}[/] files extracted.");
         }
     }
 }
