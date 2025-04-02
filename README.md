@@ -21,6 +21,7 @@ BadBuilder is a tool for creating a BadUpdate USB drive for the Xbox 360. It aut
 - Prepares the USB drive for the BadUpdate exploit by copying all required files.
 ### Homebrew Support
 - Allows adding homebrew applications by specifying their root folder.
+- Prompts for the path of the entry point if it could not be automatically determined.
 - Automatically searches for the entry point (`.xex`) file within the folder.
 - If multiple `.xex` files are found, BadBuilder will prompt you to select the correct one.
 - Copies all necessary files and patches the entry `.xex` using the downloaded XexTool.
@@ -30,11 +31,13 @@ BadBuilder is a tool for creating a BadUpdate USB drive for the Xbox 360. It aut
 2. **Formatting (Windows Only):** BadBuilder will format your USB drive as FAT32, even if it’s larger than 32GB.
 > [!CAUTION]
 > Formatting a disk means that all data will be lost. Make sure you have selected the right drive before confirming the format. I am not responsible for any data loss.
-4. **Download Files:** BadBuilder will fetch the required exploit files or let you specify an existing location.
-5. **Extract Files:** BadBuilder will automatically extract everything needed.
-6. **Copy files:** BadBuilder will copy all of the extracted files to the correct locations.
-5. **Add Homebrew (Optional):**
+3. **Download Files:** BadBuilder will fetch the required exploit files or let you specify an existing location.
+4. **Extract Files:** BadBuilder will automatically extract everything needed.
+5. **Select default program**: BadBuilder will prompt you to choose a program that BadUpdate will try and invoke, being either [FreeMyXe](https://github.com/FreeMyXe/FreeMyXe), or [XeUnshackle](https://github.com/Byrom90/XeUnshackle)
+6. **Copy Files:** BadBuilder will copy all of the extracted files to the correct locations.
+7. **Add Homebrew (Optional):**
     - Specify the root folder of your homebrew application (e.g., `D:\Aurora 0.7b.2 - Release Package`).
+    - If no `.xex` files were located in the root folder, BadBuilder will prompt you for the path of the entry point.
     - BadBuilder will locate the `.xex` file inside.
     - If multiple `.xex` files exist, you’ll be prompted to choose the correct entry point.
     - First, all necessary files will be copied, then, the `.xex` file will be patched using **XexTool**.
@@ -63,15 +66,14 @@ Aurora 0.7b.2 - Release Package/
 BadBuilder will detect `Aurora.xex` as the entry point and patch it accordingly.
 
 > [!IMPORTANT]  
-> Homebrew apps which do not contain the entry point in the root folder are not currently supported.
-
-### Using unsupported homebrew
-If you would still like to use unsupported homebrew apps, you'll have to copy them manually. To do so, perform these steps:
-1. Copy the entire root folder into the `Apps` folder on your target drive.
-2. Find and copy the path of the entry point.
-3. Open a terminal window and construct the following command:
-    - **Command:** `"<path_to_folder_of_BadBuilder.exe>\Work\Extract\BadUpdate Tools\XePatcher\XexTool.exe" -m r -r a "<path_to_entry_point>"`
-    - **Example:** `"C:\BadBuilder\Work\Extract\BadUpdate Tools\XePatcher\XexTool.exe" -m r -r a "H:\Apps\Aurora 0.7b.2 - Release Package\Aurora.xex"`
+> Homebrew apps which do not contain the entry point in the root folder will require you to manually enter the path of the entry point.
 
 ## Reporting Issues
 If you encounter any problems, please create a new issue with details about your setup and the problem.
+
+### Credits
+- **Grimdoomer:** [BadUpdate](https://github.com/grimdoomer/Xbox360BadUpdate)
+- **InvoxiPlayGames:** [FreeMyXe](https://github.com/FreeMyXe/FreeMyXe)
+- **Byrom90:** [XeUnshackle](https://github.com/Byrom90/XeUnshackle)
+- **Swizzy:** [Simple 360 NAND Flasher](https://github.com/Swizzy/XDK_Projects)
+- **Team XeDEV:** XeXMenu
