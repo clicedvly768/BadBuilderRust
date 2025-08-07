@@ -13,12 +13,12 @@ namespace BadBuilder
 {
     internal partial class Program
     {
-        static readonly Style OrangeStyle = new Style(new Color(255, 114, 0));
-        static readonly Style LightOrangeStyle = new Style(new Color(255, 172, 77));
-        static readonly Style PeachStyle = new Style(new Color(255, 216, 153));
+        static readonly Style OrangeStyle = new(new Color(255, 114, 0));
+        static readonly Style LightOrangeStyle = new(new Color(255, 172, 77));
+        static readonly Style PeachStyle = new(new Color(255, 216, 153));
 
-        static readonly Style GreenStyle = new Style(new Color(118, 185, 0));
-        static readonly Style GrayStyle = new Style(new Color(132, 133, 137));
+        static readonly Style GreenStyle = new(new Color(118, 185, 0));
+        static readonly Style GrayStyle = new(new Color(132, 133, 137));
 
         static string XexToolPath = string.Empty;
         static string TargetDriveLetter = string.Empty;
@@ -40,7 +40,7 @@ namespace BadBuilder
 
                 List<DiskInfo> disks = DiskHelper.GetDisks();
                 string selectedDisk = PromptDiskSelection(disks);
-                TargetDriveLetter = selectedDisk.Substring(0, 3);
+                TargetDriveLetter = selectedDisk[..3];
 
                 int diskIndex = disks.FindIndex(disk => $"{disk.DriveLetter} ({disk.SizeFormatted}) - {disk.Type}" == selectedDisk);
                 targetDisk = disks[diskIndex];
@@ -72,7 +72,7 @@ namespace BadBuilder
             {
                 switch (folder.Split("\\").Last())
                 {
-                    case "XeXMenu":
+                    case "XeXmenu":
                         EnqueueMirrorDirectory(
                             Path.Combine(folder, $"{ContentFolder}C0DE9999"),
                             Path.Combine(TargetDriveLetter, $"{ContentFolder}C0DE9999"),
@@ -211,7 +211,7 @@ namespace BadBuilder
             [#CCE388]██████╔╝██║  ██║██████╔╝██████╔╝╚██████╔╝██║███████╗██████╔╝███████╗██║  ██║[/]
             [#CCE388]╚═════╝ ╚═╝  ╚═╝╚═════╝ ╚═════╝  ╚═════╝ ╚═╝╚══════╝╚═════╝ ╚══════╝╚═╝  ╚═╝[/]
 
-            [#76B900]───────────────────────────────────────────────────────────────────────v0.30[/]
+            [#76B900]───────────────────────────────────────────────────────────────────────v0.31[/]
             ───────────────────────Xbox 360 [#FF7200]BadUpdate[/] USB Builder───────────────────────
                                         [#848589]Created by Pdawg[/]
             [#76B900]────────────────────────────────────────────────────────────────────────────[/]
